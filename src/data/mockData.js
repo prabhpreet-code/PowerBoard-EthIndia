@@ -449,7 +449,7 @@ export const mockLineData = [
       },
       {
         x: 'epoch 3433',
-        y: 216,
+        y: 216, 
       },
       {
         x: 'epoch 3434',
