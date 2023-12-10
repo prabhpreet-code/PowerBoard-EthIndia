@@ -9,26 +9,67 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
   const colors = tokens(theme.palette.mode);
 
   const [totalTokens, setTotalTokens] = useState([]);
+  const [epochId, setEpochId] = useState();
+  const [graphData, setGraphData] = useState([])
+  let x=[]
+  let y=[]
   useEffect(() => {
-    let totalCalculatedToken = [];
-    // for showing token
-    for (let index = 1; index < 10; index++) {
-      fetch(
-        "https://uniswapv2-api.powerloom.io/data/3441/aggregate_24h_stats_lite:9fb408548a732c85604dacb9c956ffc2538a3b895250741593da630d994b1f27:UNISWAPV2/"
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-          totalCalculatedToken.push(data.tvl);
-        })
-        .catch((error) => console.error("Error:", error));
+    const calculateGraph = async() => {
+      let totalCalculatedToken = [];
 
-      setTotalTokens(totalCalculatedToken);
+    const mockData = [
+      {
+        id: "TVL",
+        color: tokens("dark").greenAccent[500],
+        data: [],
+      },
+    ];
+    
+    // for finding epochID
+    await fetch(
+      "https://uniswapv2-api.powerloom.io/data/3441/aggregate_24h_stats_lite:9fb408548a732c85604dacb9c956ffc2538a3b895250741593da630d994b1f27:UNISWAPV2/"
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("data : ",data);
+        setEpochId(data.epochId);
+
+
+        for (let index = 0; index < 20; index++) {
+          console.log(data.epochId - index)
+         fetch(
+            `https://uniswapv2-api.powerloom.io/data/${data.epochId - index}/aggregate_24h_stats_lite:9fb408548a732c85604dacb9c956ffc2538a3b895250741593da630d994b1f27:UNISWAPV2/`
+          )
+            .then((response) => response.json())
+            .then(async (data2) => {
+        console.log("data : ",data2);
+        console.log(data.epochId-index);
+              totalCalculatedToken.push(data2.tvl);
+              await mockData[0].data.push({
+                x: `epoch ${data.epochId-index}`,
+                y: data2.tvl,
+              })
+            })
+            .catch((error) => console.error("Error:", error));
+    
+          setTotalTokens(totalCalculatedToken);
+        }
+      })
+      .catch((error) => console.error("Error:", error));
+
+      console.log(mockData)
+
+      setGraphData(mockData)
     }
+
+    calculateGraph()
+    
   }, []);
+
+
   return (
     <ResponsiveLine
-      data={data}
+      data={graphData}
       theme={{
         axis: {
           domain: {
